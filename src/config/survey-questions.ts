@@ -1,0 +1,202 @@
+import { Category } from "@/lib/types";
+
+export const surveyCategories: Category[] = [
+  {
+    id: "transport",
+    title: "Transportation",
+    icon: "🚗",
+    description: "How you get around day to day",
+    questions: [
+      {
+        id: "transport_car_km",
+        text: "How many kilometers do you drive per week?",
+        type: "number",
+        unit: "km/week",
+        placeholder: "0",
+        min: 0,
+        max: 5000,
+      },
+      {
+        id: "transport_car_type",
+        text: "What type of vehicle do you primarily use?",
+        type: "select",
+        options: [
+          { label: "No car", value: "none" },
+          { label: "Gasoline car", value: "gasoline" },
+          { label: "Diesel car", value: "diesel" },
+          { label: "Hybrid", value: "hybrid" },
+          { label: "Electric", value: "electric" },
+        ],
+      },
+      {
+        id: "transport_flights_short",
+        text: "How many short-haul flights (<3h) do you take per year?",
+        type: "number",
+        unit: "flights/year",
+        placeholder: "0",
+        min: 0,
+        max: 200,
+      },
+      {
+        id: "transport_flights_long",
+        text: "How many long-haul flights (>3h) do you take per year?",
+        type: "number",
+        unit: "flights/year",
+        placeholder: "0",
+        min: 0,
+        max: 100,
+      },
+      {
+        id: "transport_public",
+        text: "How often do you use public transport?",
+        type: "select",
+        options: [
+          { label: "Never", value: "never" },
+          { label: "Occasionally (1-2 days/week)", value: "occasional" },
+          { label: "Regularly (3-5 days/week)", value: "regular" },
+          { label: "Daily", value: "daily" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "energy",
+    title: "Home Energy",
+    icon: "⚡",
+    description: "Your household energy consumption",
+    questions: [
+      {
+        id: "energy_electricity",
+        text: "How much electricity does your household use per month?",
+        type: "number",
+        unit: "kWh/month",
+        placeholder: "0",
+        min: 0,
+        max: 10000,
+      },
+      {
+        id: "energy_gas",
+        text: "How much natural gas does your household use per month?",
+        type: "number",
+        unit: "m³/month",
+        placeholder: "0",
+        min: 0,
+        max: 5000,
+      },
+      {
+        id: "energy_heating",
+        text: "What is your primary heating source?",
+        type: "select",
+        options: [
+          { label: "Electric heating", value: "electric" },
+          { label: "Natural gas", value: "gas" },
+          { label: "Oil/diesel", value: "oil" },
+          { label: "Heat pump", value: "heat_pump" },
+          { label: "Wood/pellets", value: "wood" },
+          { label: "District heating", value: "district" },
+        ],
+      },
+      {
+        id: "energy_renewable",
+        text: "Do you use renewable energy at home?",
+        type: "radio",
+        options: [
+          { label: "No", value: "no" },
+          { label: "Partially (green energy plan)", value: "partial" },
+          { label: "Yes (solar panels / 100% renewable)", value: "yes" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "food",
+    title: "Food & Diet",
+    icon: "🍽️",
+    description: "Your eating habits and food choices",
+    questions: [
+      {
+        id: "food_diet",
+        text: "How would you describe your diet?",
+        type: "select",
+        options: [
+          { label: "Vegan (no animal products)", value: "vegan" },
+          { label: "Vegetarian (no meat)", value: "vegetarian" },
+          { label: "Pescatarian (fish but no meat)", value: "pescatarian" },
+          { label: "Low meat (meat 1-2 times/week)", value: "low_meat" },
+          { label: "Medium meat (meat 3-5 times/week)", value: "medium_meat" },
+          { label: "High meat (meat daily)", value: "high_meat" },
+        ],
+      },
+      {
+        id: "food_local",
+        text: "How often do you buy local/seasonal food?",
+        type: "select",
+        options: [
+          { label: "Rarely", value: "rarely" },
+          { label: "Sometimes", value: "sometimes" },
+          { label: "Often", value: "often" },
+          { label: "Almost always", value: "always" },
+        ],
+      },
+      {
+        id: "food_waste",
+        text: "How much food do you throw away per week?",
+        type: "select",
+        options: [
+          { label: "Almost none", value: "none" },
+          { label: "A little (less than 1kg)", value: "little" },
+          { label: "Some (1-3kg)", value: "some" },
+          { label: "A lot (more than 3kg)", value: "lot" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "waste",
+    title: "Waste & Consumption",
+    icon: "♻️",
+    description: "Your waste habits and purchasing patterns",
+    questions: [
+      {
+        id: "waste_recycling",
+        text: "How much of your waste do you recycle?",
+        type: "select",
+        options: [
+          { label: "Nothing", value: "none" },
+          { label: "Some items", value: "some" },
+          { label: "Most items", value: "most" },
+          { label: "Everything possible", value: "everything" },
+        ],
+      },
+      {
+        id: "waste_composting",
+        text: "Do you compost organic waste?",
+        type: "radio",
+        options: [
+          { label: "No", value: "no" },
+          { label: "Yes", value: "yes" },
+        ],
+      },
+      {
+        id: "waste_shopping",
+        text: "How often do you buy new clothing?",
+        type: "select",
+        options: [
+          { label: "Rarely (few times a year)", value: "rarely" },
+          { label: "Monthly", value: "monthly" },
+          { label: "Weekly", value: "weekly" },
+        ],
+      },
+      {
+        id: "waste_electronics",
+        text: "How often do you buy new electronics/gadgets?",
+        type: "select",
+        options: [
+          { label: "Rarely (every 3+ years)", value: "rarely" },
+          { label: "Occasionally (every 1-2 years)", value: "occasionally" },
+          { label: "Frequently (multiple times a year)", value: "frequently" },
+        ],
+      },
+    ],
+  },
+];
