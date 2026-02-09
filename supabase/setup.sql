@@ -1,15 +1,22 @@
 -- Carbon Footprint Calculator - Database Setup
 -- Run this in Supabase Dashboard > SQL Editor > New query
 
+-- IMPORTANT: If you have existing tables, you need to either:
+-- 1. Drop them first (WARNING: loses all data): DROP TABLE IF EXISTS submission_answers, submission_categories, submissions CASCADE;
+-- 2. Or add the new columns to existing table: ALTER TABLE submissions ADD COLUMN student_name TEXT NOT NULL DEFAULT '', ADD COLUMN student_email TEXT NOT NULL DEFAULT '';
+
 -- Table: submissions (one row per completed survey)
 CREATE TABLE submissions (
-  id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  session_id    TEXT NOT NULL,
-  total_co2_kg  NUMERIC(10,2) NOT NULL,
-  created_at    TIMESTAMPTZ DEFAULT now() NOT NULL
+  id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  session_id      TEXT NOT NULL,
+  student_name    TEXT NOT NULL,
+  student_email   TEXT NOT NULL,
+  total_co2_kg    NUMERIC(10,2) NOT NULL,
+  created_at      TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
 CREATE INDEX idx_submissions_session_id ON submissions (session_id);
+CREATE INDEX idx_submissions_student_email ON submissions (student_email);
 
 -- Table: submission_categories (CO2 breakdown per category)
 CREATE TABLE submission_categories (

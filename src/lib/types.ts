@@ -43,9 +43,16 @@ export interface CalculationResult {
   categories: Record<string, number>;
 }
 
+export interface StudentInfo {
+  name: string;
+  email: string;
+}
+
 export interface SubmissionRecord {
   id: string;
   session_id: string;
+  student_name: string;
+  student_email: string;
   total_co2_kg: number;
   created_at: string;
 }

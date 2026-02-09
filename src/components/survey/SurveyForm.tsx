@@ -3,26 +3,53 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { surveyCategories } from "@/config/survey-questions";
-import { SurveyAnswers } from "@/lib/types";
+import { SurveyAnswers, StudentInfo } from "@/lib/types";
 import { useSessionId } from "@/hooks/useSessionId";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { CategoryStep } from "./CategoryStep";
+import { StudentInfoStep } from "./StudentInfoStep";
 
 export function SurveyForm() {
   const router = useRouter();
   const sessionId = useSessionId();
   const [currentStep, setCurrentStep] = useState(0);
+  const [studentInfo, setStudentInfo] = useState<StudentInfo>({ name: "", email: "" });
   const [answers, setAnswers] = useState<SurveyAnswers>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const totalSteps = surveyCategories.length;
-  const currentCategory = surveyCategories[currentStep];
+  // Step 0 = Student Info, Steps 1-4 = Categories
+  const totalSteps = surveyCategories.length + 1;
+  const isStudentInfoStep = currentStep === 0;
+  const currentCategory = isStudentInfoStep ? null : surveyCategories[currentStep - 1];
+
+  const stepLabels = ["Your Info", ...surveyCategories.map((c) => c.title)];
+
+  function handleStudentInfoChange(field: keyof StudentInfo, value: string) {
+    setStudentInfo((prev) => ({ ...prev, [field]: value }));
+  }
 
   function handleAnswer(questionId: string, value: string) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  }
+
+  function validateStudentInfo(): boolean {
+    if (!studentInfo.name.trim()) {
+      setError("Please enter your name");
+      return false;
+    }
+    if (!studentInfo.email.trim()) {
+      setError("Please enter your email");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(studentInfo.email)) {
+      setError("Please enter a valid email address");
+      return false;
+    }
+    return true;
   }
 
   function handlePrevious() {
@@ -31,6 +58,9 @@ export function SurveyForm() {
   }
 
   function handleNext() {
+    if (isStudentInfoStep && !validateStudentInfo()) {
+      return;
+    }
     setCurrentStep((prev) => Math.min(totalSteps - 1, prev + 1));
     setError(null);
   }
@@ -45,7 +75,7 @@ export function SurveyForm() {
       const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, answers }),
+        body: JSON.stringify({ sessionId, studentInfo, answers }),
       });
 
       const data = await res.json();
@@ -70,15 +100,24 @@ export function SurveyForm() {
       <ProgressBar
         current={currentStep}
         total={totalSteps}
-        labels={surveyCategories.map((c) => c.title)}
+        labels={stepLabels}
       />
 
       <Card>
-        <CategoryStep
-          category={currentCategory}
-          answers={answers}
-          onAnswer={handleAnswer}
-        />
+        {isStudentInfoStep ? (
+          <StudentInfoStep
+            studentInfo={studentInfo}
+            onChange={handleStudentInfoChange}
+          />
+        ) : (
+          currentCategory && (
+            <CategoryStep
+              category={currentCategory}
+              answers={answers}
+              onAnswer={handleAnswer}
+            />
+          )
+        )}
 
         {error && (
           <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-md text-red-600 text-sm">

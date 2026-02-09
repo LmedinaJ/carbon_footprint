@@ -44,14 +44,14 @@ export function CategoryBarChart({ categories }: CategoryBarChartProps) {
           <XAxis dataKey="name" />
           <YAxis
             label={{
-              value: "kg CO2/year",
+              value: "kg CO2e/year",
               angle: -90,
               position: "insideLeft",
               offset: -5,
             }}
           />
           <Tooltip
-            formatter={(value) => [`${Number(value).toLocaleString()} kg CO2/year`]}
+            formatter={(value) => [`${Number(value).toLocaleString()} kg CO2e/year`]}
           />
           <Bar dataKey="co2" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (

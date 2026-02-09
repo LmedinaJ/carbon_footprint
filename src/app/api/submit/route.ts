@@ -4,6 +4,7 @@ import { calculateFootprint } from "@/lib/calculator";
 import { checkRateLimit } from "@/lib/rate-limit";
 import {
   validateSessionId,
+  validateStudentInfo,
   validateAnswers,
   MAX_SUBMISSIONS_PER_SESSION,
 } from "@/lib/validation";
@@ -29,8 +30,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { sessionId, answers } = body as {
+  const { sessionId, studentInfo, answers } = body as {
     sessionId: unknown;
+    studentInfo: unknown;
     answers: unknown;
   };
 
@@ -38,6 +40,12 @@ export async function POST(request: NextRequest) {
   const sessionError = validateSessionId(sessionId);
   if (sessionError) {
     return NextResponse.json({ error: sessionError }, { status: 400 });
+  }
+
+  // Validate student info
+  const studentError = validateStudentInfo(studentInfo);
+  if (studentError) {
+    return NextResponse.json({ error: studentError }, { status: 400 });
   }
 
   // Validate answers
@@ -64,11 +72,15 @@ export async function POST(request: NextRequest) {
   // Calculate footprint
   const result = calculateFootprint(answers as Record<string, string>);
 
+  const studentData = studentInfo as { name: string; email: string };
+
   // Insert submission
   const { data: submission, error: subError } = await supabase
     .from("submissions")
     .insert({
       session_id: sessionId as string,
+      student_name: studentData.name.trim(),
+      student_email: studentData.email.trim().toLowerCase(),
       total_co2_kg: result.total,
     })
     .select("id")

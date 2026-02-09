@@ -33,9 +33,10 @@ export function calculateFootprint(answers: SurveyAnswers): CalculationResult {
     categories[categoryId] += co2;
   }
 
-  // Handle special case: if car type is "none", zero out car km contribution
-  if (answers["transport_car_type"] === "none") {
-    // Remove the car_km contribution and the "none" penalty
+  // Handle special case: if vehicle type is public transport or train, zero out km contribution
+  const vehicleType = answers["transport_vehicle_type"];
+  if (vehicleType === "public_transport" || vehicleType === "train") {
+    // Remove the car_km contribution and the large negative penalty
     const carKmFactor = emissionFactors["transport_car_km"];
     if (carKmFactor && carKmFactor.type === "multiply") {
       const km = parseFloat(answers["transport_car_km"] || "0");

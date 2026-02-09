@@ -1,5 +1,10 @@
 import { Category } from "@/lib/types";
 
+export interface StudentInfo {
+  name: string;
+  email: string;
+}
+
 export const surveyCategories: Category[] = [
   {
     id: "transport",
@@ -17,15 +22,18 @@ export const surveyCategories: Category[] = [
         max: 5000,
       },
       {
-        id: "transport_car_type",
+        id: "transport_vehicle_type",
         text: "What type of vehicle do you primarily use?",
         type: "select",
         options: [
-          { label: "No car", value: "none" },
-          { label: "Gasoline car", value: "gasoline" },
-          { label: "Diesel car", value: "diesel" },
-          { label: "Hybrid", value: "hybrid" },
-          { label: "Electric", value: "electric" },
+          { label: "Gasoline car", value: "gasoline_car" },
+          { label: "Diesel car", value: "diesel_car" },
+          { label: "Hybrid car", value: "hybrid_car" },
+          { label: "Electric car", value: "electric_car" },
+          { label: "Gasoline motorbike", value: "gasoline_motorbike" },
+          { label: "Electric motorbike", value: "electric_motorbike" },
+          { label: "Public transportation", value: "public_transport" },
+          { label: "Train", value: "train" },
         ],
       },
       {
@@ -69,42 +77,21 @@ export const surveyCategories: Category[] = [
         id: "energy_electricity",
         text: "How much electricity does your household use per month?",
         type: "number",
-        unit: "kWh/month",
+        unit: "Baht/month",
         placeholder: "0",
+        helpText: "Enter your electricity bill in Baht. Formula: Baht/4 = kg CO2e per month.",
         min: 0,
-        max: 10000,
+        max: 50000,
       },
       {
-        id: "energy_gas",
-        text: "How much natural gas does your household use per month?",
+        id: "energy_lpg",
+        text: "How many LP gas cylinders does your household use per month?",
         type: "number",
-        unit: "m³/month",
+        unit: "cylinders/month",
         placeholder: "0",
+        helpText: "Standard 15kg cylinder",
         min: 0,
-        max: 5000,
-      },
-      {
-        id: "energy_heating",
-        text: "What is your primary heating source?",
-        type: "select",
-        options: [
-          { label: "Electric heating", value: "electric" },
-          { label: "Natural gas", value: "gas" },
-          { label: "Oil/diesel", value: "oil" },
-          { label: "Heat pump", value: "heat_pump" },
-          { label: "Wood/pellets", value: "wood" },
-          { label: "District heating", value: "district" },
-        ],
-      },
-      {
-        id: "energy_renewable",
-        text: "Do you use renewable energy at home?",
-        type: "radio",
-        options: [
-          { label: "No", value: "no" },
-          { label: "Partially (green energy plan)", value: "partial" },
-          { label: "Yes (solar panels / 100% renewable)", value: "yes" },
-        ],
+        max: 10,
       },
     ],
   },
@@ -119,12 +106,12 @@ export const surveyCategories: Category[] = [
         text: "How would you describe your diet?",
         type: "select",
         options: [
-          { label: "Vegan (no animal products)", value: "vegan" },
-          { label: "Vegetarian (no meat)", value: "vegetarian" },
-          { label: "Pescatarian (fish but no meat)", value: "pescatarian" },
-          { label: "Low meat (meat 1-2 times/week)", value: "low_meat" },
-          { label: "Medium meat (meat 3-5 times/week)", value: "medium_meat" },
-          { label: "High meat (meat daily)", value: "high_meat" },
+          { label: "Vegan", value: "vegan" },
+          { label: "Vegetarian", value: "vegetarian" },
+          { label: "Pescatarian", value: "pescatarian" },
+          { label: "Low meat (1-2 times/week)", value: "low_meat" },
+          { label: "Medium meat (3-5 times/week)", value: "medium_meat" },
+          { label: "High meat (daily)", value: "high_meat" },
         ],
       },
       {
@@ -135,7 +122,7 @@ export const surveyCategories: Category[] = [
           { label: "Rarely", value: "rarely" },
           { label: "Sometimes", value: "sometimes" },
           { label: "Often", value: "often" },
-          { label: "Almost always", value: "always" },
+          { label: "Always", value: "always" },
         ],
       },
       {
@@ -143,10 +130,10 @@ export const surveyCategories: Category[] = [
         text: "How much food do you throw away per week?",
         type: "select",
         options: [
-          { label: "Almost none", value: "none" },
-          { label: "A little (less than 1kg)", value: "little" },
-          { label: "Some (1-3kg)", value: "some" },
-          { label: "A lot (more than 3kg)", value: "lot" },
+          { label: "None", value: "none" },
+          { label: "A little", value: "little" },
+          { label: "Some", value: "some" },
+          { label: "A lot", value: "lot" },
         ],
       },
     ],
@@ -162,10 +149,10 @@ export const surveyCategories: Category[] = [
         text: "How much of your waste do you recycle?",
         type: "select",
         options: [
-          { label: "Nothing", value: "none" },
-          { label: "Some items", value: "some" },
-          { label: "Most items", value: "most" },
-          { label: "Everything possible", value: "everything" },
+          { label: "None", value: "none" },
+          { label: "Some", value: "some" },
+          { label: "Most", value: "most" },
+          { label: "Everything", value: "everything" },
         ],
       },
       {
@@ -173,8 +160,8 @@ export const surveyCategories: Category[] = [
         text: "Do you compost organic waste?",
         type: "radio",
         options: [
-          { label: "No", value: "no" },
           { label: "Yes", value: "yes" },
+          { label: "No", value: "no" },
         ],
       },
       {
@@ -182,7 +169,7 @@ export const surveyCategories: Category[] = [
         text: "How often do you buy new clothing?",
         type: "select",
         options: [
-          { label: "Rarely (few times a year)", value: "rarely" },
+          { label: "Rarely", value: "rarely" },
           { label: "Monthly", value: "monthly" },
           { label: "Weekly", value: "weekly" },
         ],
@@ -192,9 +179,9 @@ export const surveyCategories: Category[] = [
         text: "How often do you buy new electronics/gadgets?",
         type: "select",
         options: [
-          { label: "Rarely (every 3+ years)", value: "rarely" },
-          { label: "Occasionally (every 1-2 years)", value: "occasionally" },
-          { label: "Frequently (multiple times a year)", value: "frequently" },
+          { label: "Rarely", value: "rarely" },
+          { label: "Occasionally", value: "occasionally" },
+          { label: "Frequently", value: "frequently" },
         ],
       },
     ],

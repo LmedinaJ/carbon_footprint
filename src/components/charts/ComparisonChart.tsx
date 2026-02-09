@@ -45,7 +45,7 @@ export function ComparisonChart({
           <XAxis dataKey="name" />
           <YAxis
             label={{
-              value: "kg CO2/year",
+              value: "kg CO2e/year",
               angle: -90,
               position: "insideLeft",
               offset: -5,
@@ -53,7 +53,7 @@ export function ComparisonChart({
           />
           <Tooltip
             formatter={(value) => [
-              `${Number(value).toLocaleString()} kg CO2/year`,
+              `${Number(value).toLocaleString()} kg CO2e/year`,
             ]}
           />
           <Legend />
