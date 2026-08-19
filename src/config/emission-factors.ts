@@ -24,8 +24,10 @@ import { EmissionFactor } from "@/lib/types";
  *   https://www.tgo.or.th
  * - Thailand electricity price: ~4 Baht/kWh average
  *   Formula: Baht/4 = kg CO2e per month (user-provided approximation)
- * - LPG cylinder (15kg): 44.1 kg CO2e per cylinder
- *   Source: IPCC 2006 Guidelines (2.98 kg CO2e per kg LPG × 15kg = 44.7 ≈ 44.1)
+ * - LPG cylinder (15kg): 1 cylinder = 14.5 m³ gas
+ *   Source: IPCC 2006 Guidelines
+ *   - Emission factor: 3.0 kg CO2e per m³ LPG gas (derived from 2.98 kg CO2e/kg × 1.9 kg/m³ density)
+ *   - Formula: cylinders × 14.5 m³ × 3.0 kg CO2e/m³ = 43.5 kg CO2e per cylinder
  *
  * FOOD & DIET:
  * - Diet emissions: Our World in Data / Poore & Nemecek (2018) Science
@@ -96,11 +98,12 @@ export const emissionFactors: Record<string, EmissionFactor> = {
     factor: 0.25, // Baht → kg CO2e (Baht/4 = Baht × 0.25)
     annualize: 12, // 12 months/year
   },
-  // LPG cylinder: 15kg LPG = 44.1 kg CO2e (IPCC emission factor)
+  // LPG: cylinders/year × 14.5 m³/cylinder × 3.0 kg CO2e/m³ = kg CO2e/year
+  // Source: IPCC 2006 (2.98 kg CO2e per kg LPG, ~1.9 kg/m³ gas density)
   energy_lpg: {
     type: "multiply",
-    factor: 44.1, // kg CO2e per 15kg LPG cylinder
-    annualize: 12, // 12 months/year
+    factor: 43.5, // 14.5 m³/cylinder × 3.0 kg CO2e/m³
+    annualize: 1, // Already per year
   },
 
   // --- FOOD & DIET ---

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getSubmissionsSheet, CATEGORY_IDS } from "@/lib/sheets";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { validateSessionId } from "@/lib/validation";
 
@@ -22,43 +22,39 @@ export async function GET(
     return NextResponse.json({ error: sessionError }, { status: 400 });
   }
 
-  // Get the latest submission for this session
-  const { data: submission, error: subError } = await supabase
-    .from("submissions")
-    .select("id, total_co2_kg, created_at")
-    .eq("session_id", sessionId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
+  let rows;
+  try {
+    const sheet = await getSubmissionsSheet();
+    rows = await sheet.getRows();
+  } catch (err) {
+    console.error("Failed to load Google Sheet", err);
+    return NextResponse.json(
+      { error: "Failed to load results" },
+      { status: 500 }
+    );
+  }
 
-  if (subError || !submission) {
+  const sessionRows = rows.filter((row) => row.get("session_id") === sessionId);
+  if (sessionRows.length === 0) {
     return NextResponse.json(
       { error: "No results found for this session" },
       { status: 404 }
     );
   }
 
-  // Get category breakdowns
-  const { data: categories, error: catError } = await supabase
-    .from("submission_categories")
-    .select("category, co2_kg")
-    .eq("submission_id", submission.id);
-
-  if (catError) {
-    return NextResponse.json(
-      { error: "Failed to load category data" },
-      { status: 500 }
-    );
-  }
+  // Latest submission for this session
+  const latest = sessionRows.reduce((a, b) =>
+    new Date(a.get("created_at")) > new Date(b.get("created_at")) ? a : b
+  );
 
   const categoryMap: Record<string, number> = {};
-  for (const row of categories || []) {
-    categoryMap[row.category] = Number(row.co2_kg);
+  for (const categoryId of CATEGORY_IDS) {
+    categoryMap[categoryId] = Number(latest.get(`category_${categoryId}_kg`)) || 0;
   }
 
   return NextResponse.json({
-    total: Number(submission.total_co2_kg),
+    total: Number(latest.get("total_co2_kg")) || 0,
     categories: categoryMap,
-    createdAt: submission.created_at,
+    createdAt: latest.get("created_at"),
   });
 }

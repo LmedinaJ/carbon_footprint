@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getSubmissionsSheet, CATEGORY_IDS } from "@/lib/sheets";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { validateSessionId } from "@/lib/validation";
 import referenceData from "@/data/reference-averages.json";
@@ -27,58 +27,59 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: sessionError }, { status: 400 });
   }
 
-  // Get user's latest submission
-  const { data: submission } = await supabase
-    .from("submissions")
-    .select("id, total_co2_kg")
-    .eq("session_id", sessionId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
+  let rows;
+  try {
+    const sheet = await getSubmissionsSheet();
+    rows = await sheet.getRows();
+  } catch (err) {
+    console.error("Failed to load Google Sheet", err);
+    return NextResponse.json(
+      { error: "Failed to load comparison data" },
+      { status: 500 }
+    );
+  }
 
-  if (!submission) {
+  const sessionRows = rows.filter((row) => row.get("session_id") === sessionId);
+  if (sessionRows.length === 0) {
     return NextResponse.json(
       { error: "No results found" },
       { status: 404 }
     );
   }
 
-  // Get user's category breakdown
-  const { data: userCategories } = await supabase
-    .from("submission_categories")
-    .select("category, co2_kg")
-    .eq("submission_id", submission.id);
+  // User's latest submission
+  const latest = sessionRows.reduce((a, b) =>
+    new Date(a.get("created_at")) > new Date(b.get("created_at")) ? a : b
+  );
 
   const userMap: Record<string, number> = {};
-  for (const row of userCategories || []) {
-    userMap[row.category] = Number(row.co2_kg);
+  for (const categoryId of CATEGORY_IDS) {
+    userMap[categoryId] = Number(latest.get(`category_${categoryId}_kg`)) || 0;
   }
+  const userTotal = Number(latest.get("total_co2_kg")) || 0;
 
-  // Get average per category across ALL users
-  const { data: allCategories } = await supabase
-    .from("submission_categories")
-    .select("category, co2_kg");
+  // Average per category across ALL submissions (matches previous behavior,
+  // which averaged over every row rather than deduping per session)
+  const sums: Record<string, number> = {};
+  for (const categoryId of CATEGORY_IDS) sums[categoryId] = 0;
 
-  const avgMap: Record<string, { sum: number; count: number }> = {};
-  for (const row of allCategories || []) {
-    if (!avgMap[row.category]) {
-      avgMap[row.category] = { sum: 0, count: 0 };
+  for (const row of rows) {
+    for (const categoryId of CATEGORY_IDS) {
+      sums[categoryId] += Number(row.get(`category_${categoryId}_kg`)) || 0;
     }
-    avgMap[row.category].sum += Number(row.co2_kg);
-    avgMap[row.category].count++;
   }
 
   const allUsersAvg: Record<string, number> = {};
   let allUsersAvgTotal = 0;
-  for (const [cat, data] of Object.entries(avgMap)) {
-    const avg = Math.round(data.sum / data.count);
-    allUsersAvg[cat] = avg;
+  for (const categoryId of CATEGORY_IDS) {
+    const avg = rows.length > 0 ? Math.round(sums[categoryId] / rows.length) : 0;
+    allUsersAvg[categoryId] = avg;
     allUsersAvgTotal += avg;
   }
 
   return NextResponse.json({
     user: userMap,
-    userTotal: Number(submission.total_co2_kg),
+    userTotal,
     allUsersAvg,
     allUsersAvgTotal,
     referenceAverages: {

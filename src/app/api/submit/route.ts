@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getSubmissionsSheet, CATEGORY_IDS } from "@/lib/sheets";
 import { calculateFootprint } from "@/lib/calculator";
 import { checkRateLimit } from "@/lib/rate-limit";
 import {
@@ -54,13 +54,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: answersError }, { status: 400 });
   }
 
-  // Check insert limit per session
-  const { count } = await supabase
-    .from("submissions")
-    .select("*", { count: "exact", head: true })
-    .eq("session_id", sessionId as string);
+  let sheet;
+  try {
+    sheet = await getSubmissionsSheet();
+  } catch (err) {
+    console.error("Failed to load Google Sheet", err);
+    return NextResponse.json(
+      { error: "Failed to save submission" },
+      { status: 500 }
+    );
+  }
 
-  if (count !== null && count >= MAX_SUBMISSIONS_PER_SESSION) {
+  // Check insert limit per session
+  const existingRows = await sheet.getRows();
+  const sessionRowCount = existingRows.filter(
+    (row) => row.get("session_id") === sessionId
+  ).length;
+
+  if (sessionRowCount >= MAX_SUBMISSIONS_PER_SESSION) {
     return NextResponse.json(
       {
         error: `Maximum submissions (${MAX_SUBMISSIONS_PER_SESSION}) reached for this session.`,
@@ -73,62 +84,31 @@ export async function POST(request: NextRequest) {
   const result = calculateFootprint(answers as Record<string, string>);
 
   const studentData = studentInfo as { name: string; email: string };
+  const answerData = answers as Record<string, string>;
 
-  // Insert submission
-  const { data: submission, error: subError } = await supabase
-    .from("submissions")
-    .insert({
-      session_id: sessionId as string,
-      student_name: studentData.name.trim(),
-      student_email: studentData.email.trim().toLowerCase(),
-      total_co2_kg: result.total,
-    })
-    .select("id")
-    .single();
+  // Build the flat row: identity + totals + per-category breakdown + raw answers
+  const rowValues: Record<string, string | number> = {
+    session_id: sessionId as string,
+    student_name: studentData.name.trim(),
+    student_email: studentData.email.trim().toLowerCase(),
+    total_co2_kg: result.total,
+    created_at: new Date().toISOString(),
+  };
 
-  if (subError || !submission) {
+  for (const categoryId of CATEGORY_IDS) {
+    rowValues[`category_${categoryId}_kg`] = result.categories[categoryId] ?? 0;
+  }
+
+  for (const [questionId, answerValue] of Object.entries(answerData)) {
+    rowValues[`q_${questionId}`] = answerValue;
+  }
+
+  try {
+    await sheet.addRow(rowValues);
+  } catch (err) {
+    console.error("Failed to append row to Google Sheet", err);
     return NextResponse.json(
       { error: "Failed to save submission" },
-      { status: 500 }
-    );
-  }
-
-  // Insert category breakdowns
-  const categoryRows = Object.entries(result.categories).map(
-    ([category, co2_kg]) => ({
-      submission_id: submission.id,
-      category,
-      co2_kg,
-    })
-  );
-
-  const { error: catError } = await supabase
-    .from("submission_categories")
-    .insert(categoryRows);
-
-  if (catError) {
-    return NextResponse.json(
-      { error: "Failed to save category data" },
-      { status: 500 }
-    );
-  }
-
-  // Insert raw answers
-  const answerRows = Object.entries(answers as Record<string, string>).map(
-    ([question_id, answer_value]) => ({
-      submission_id: submission.id,
-      question_id,
-      answer_value,
-    })
-  );
-
-  const { error: ansError } = await supabase
-    .from("submission_answers")
-    .insert(answerRows);
-
-  if (ansError) {
-    return NextResponse.json(
-      { error: "Failed to save answer data" },
       { status: 500 }
     );
   }

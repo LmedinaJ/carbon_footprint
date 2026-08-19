@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# docs & exports
+/docs/
+carbon_footprint_export.csv
+
+# Google service account keys (downloaded GCP JSON credentials)
+osccarbon-*.json
