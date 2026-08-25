@@ -97,4 +97,4 @@ export function validateAnswers(answers: unknown): string | null {
   return null;
 }
 
-export const MAX_SUBMISSIONS_PER_SESSION = 10;
+export const MAX_SUBMISSIONS_PER_SESSION = 100;

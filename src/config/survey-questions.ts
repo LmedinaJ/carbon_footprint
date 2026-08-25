@@ -85,7 +85,7 @@ export const surveyCategories: Category[] = [
       },
       {
         id: "energy_lpg",
-        text: "How many LP gas cylinders does your household use per year?",
+        text: "How many LPG cylinders does your household use per year?",
         type: "number",
         unit: "cylinders/year",
         placeholder: "0",
