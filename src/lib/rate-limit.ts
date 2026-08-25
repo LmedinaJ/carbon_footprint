@@ -1,5 +1,5 @@
 const WINDOW_MS = 60 * 1000; // 1 minute
-const MAX_REQUESTS = 20;
+const MAX_REQUESTS = 300; // raised for classroom use behind a shared/NAT'd IP
 
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
 
